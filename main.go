@@ -87,6 +87,23 @@ func searchTorrent(search string) []Metadata {
 	return metadata
 }
 
+func printMetadata(metadata []Metadata) {
+
+	for a := range metadata {
+		size, _ := strconv.ParseFloat(metadata[a].Size, 32)
+		fmt.Printf("%d - %s - %s - %s\n", a, metadata[a].Name, metadata[a].Seeders, getSizeString(size))
+	}
+}
+
+func sortMetadata(metadata []Metadata) {
+
+	sort.Slice(metadata, func(p, q int) bool {
+		intP, _ := strconv.ParseInt(metadata[p].Seeders, 10, 32)
+		intQ, _ := strconv.ParseInt(metadata[q].Seeders, 10, 32)
+		return intP > intQ
+	})
+}
+
 func main() {
 
 	trackers := []string{
@@ -107,25 +124,18 @@ func main() {
 	var searchOnly bool
 	var remote string
 	var category string
+
 	flag.StringVar(&search, "s", "", "Search string")
-	flag.StringVar(&remote, "add", "", "Remote qBittorent")
-	flag.StringVar(&category, "c", "", "Category")
-	flag.BoolVar(&first, "f", false, "Get first")
-	flag.BoolVar(&searchOnly, "o", false, "SearchOnly")
+	flag.StringVar(&remote, "add", "", "qBittorrent Remote")
+	flag.StringVar(&category, "c", "", "qBittorrent Category")
+	flag.BoolVar(&first, "f", false, "Non-interactive mode, automatically selects first result")
+	flag.BoolVar(&searchOnly, "o", false, "Search Only")
 	flag.Parse()
 
 	metadata := searchTorrent(search)
 
-	sort.Slice(metadata, func(p, q int) bool {
-		intP, _ := strconv.ParseInt(metadata[p].Seeders, 10, 32)
-		intQ, _ := strconv.ParseInt(metadata[q].Seeders, 10, 32)
-		return intP > intQ
-	})
-
-	for a := range metadata {
-		size, _ := strconv.ParseFloat(metadata[a].Size, 32)
-		fmt.Printf("%d - %s - %s - %s\n", a, metadata[a].Name, metadata[a].Seeders, getSizeString(size))
-	}
+	sortMetadata(metadata)
+	printMetadata(metadata)
 
 	if searchOnly {
 		return
