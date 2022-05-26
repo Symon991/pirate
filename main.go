@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -12,35 +11,11 @@ import (
 )
 
 type Metadata struct {
-	Id        int
-	Name      string
-	Info_hash string
-	Leechers  string
-	Seeders   string
-	Num_files string
-	Size      string
-	Username  string
-	Added     string
-	Status    string
-	Category  string
-	Imdb      string
-}
-
-func getSizeString(size float64) string {
-
-	if size > 1024*1024*1024 {
-		return fmt.Sprintf("%f GB", size/1024.0/1024.0/1024.0)
-	}
-
-	if size > 1024*1024 {
-		return fmt.Sprintf("%f MB", size/1024.0/1024.0)
-	}
-
-	if size > 1024 {
-		return fmt.Sprintf("%f KB", size/1024.0)
-	}
-
-	return fmt.Sprintf("%f Bytes", size)
+	Name     string
+	Hash     string
+	Seeders  string
+	Size     string
+	Category string
 }
 
 func getMagnet(metadata Metadata, trackers []string) string {
@@ -49,7 +24,7 @@ func getMagnet(metadata Metadata, trackers []string) string {
 	for a := range trackers {
 		trackerString += fmt.Sprintf("&tr=%s", trackers[a])
 	}
-	return fmt.Sprintf("magnet:?xt=urn:btih:%s&dn=%s%s", metadata.Info_hash, metadata.Name, trackerString)
+	return fmt.Sprintf("magnet:?xt=urn:btih:%s&dn=%s%s", metadata.Hash, metadata.Name, trackerString)
 }
 
 func addToRemote(remote string, magnet string, category string) {
@@ -73,25 +48,10 @@ func addToRemote(remote string, magnet string, category string) {
 	fmt.Println(string(body))
 }
 
-func searchTorrent(search string) []Metadata {
-
-	searchUrl := fmt.Sprintf("https://pirate-proxy.club/newapi/q.php?q=%s&cat=", search)
-	fmt.Println(searchUrl)
-
-	response, _ := http.Get(searchUrl)
-	bytes, _ := ioutil.ReadAll(response.Body)
-
-	var metadata []Metadata
-	json.Unmarshal(bytes, &metadata)
-
-	return metadata
-}
-
 func printMetadata(metadata []Metadata) {
 
 	for a := range metadata {
-		size, _ := strconv.ParseFloat(metadata[a].Size, 32)
-		fmt.Printf("%d - %s - %s - %s\n", a, metadata[a].Name, metadata[a].Seeders, getSizeString(size))
+		fmt.Printf("%d - %s - %s - %s\n", a, metadata[a].Name, metadata[a].Seeders, metadata[a].Size)
 	}
 }
 
@@ -106,33 +66,35 @@ func sortMetadata(metadata []Metadata) {
 
 func main() {
 
-	trackers := []string{
-		"udp://tracker.coppersurfer.tk:6969/announce",
-		"udp://tracker.openbittorrent.com:6969/announce",
-		"udp://9.rarbg.to:2710/announce",
-		"udp://9.rarbg.me:2780/announce",
-		"udp://9.rarbg.to:2730/announce",
-		"udp://tracker.opentrackr.org:1337",
-		"http://p4p.arenabg.com:1337/announce",
-		"udp://tracker.torrent.eu.org:451/announce",
-		"udp://tracker.tiny-vps.com:6969/announce",
-		"udp://open.stealth.si:80/announce",
-	}
-
 	var search string
 	var first bool
 	var searchOnly bool
 	var remote string
 	var category string
+	var site string
 
 	flag.StringVar(&search, "s", "", "Search string")
 	flag.StringVar(&remote, "add", "", "qBittorrent Remote")
 	flag.StringVar(&category, "c", "", "qBittorrent Category")
 	flag.BoolVar(&first, "f", false, "Non-interactive mode, automatically selects first result")
 	flag.BoolVar(&searchOnly, "o", false, "Search Only")
+	flag.StringVar(&site, "t", "piratebay", "Site")
 	flag.Parse()
 
-	metadata := searchTorrent(search)
+	var metadata []Metadata
+	var trackers []string
+
+	switch site {
+	case "nyaa":
+		metadata = searchNyaa(search)
+		trackers = nyaaTrackers()
+	case "piratebay":
+		metadata = searchTorrent(search)
+		trackers = pirateBayTrackers()
+	default:
+		metadata = searchTorrent(search)
+		trackers = pirateBayTrackers()
+	}
 
 	sortMetadata(metadata)
 	printMetadata(metadata)
