@@ -1,4 +1,4 @@
-package main
+package sites
 
 import (
 	"encoding/json"
@@ -23,7 +23,7 @@ type PirateBayMetadata struct {
 	Imdb      string
 }
 
-func pirateBayTrackers() []string {
+func PirateBayTrackers() []string {
 
 	trackers := []string{
 		"udp://tracker.coppersurfer.tk:6969/announce",
@@ -58,7 +58,7 @@ func getSizeString(size float64) string {
 	return fmt.Sprintf("%f Bytes", size)
 }
 
-func searchTorrent(search string) []Metadata {
+func SearchTorrent(search string) []Metadata {
 
 	searchUrl := fmt.Sprintf("https://pirate-proxy.club/newapi/q.php?q=%s&cat=", search)
 	fmt.Println(searchUrl)

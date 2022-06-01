@@ -1,4 +1,4 @@
-package main
+package sites
 
 import (
 	"encoding/xml"
@@ -27,7 +27,7 @@ type Enclosure struct {
 	Url string `xml:"url,attr"`
 }
 
-func searchOpensubs(search string, language string) []OpensubsItem {
+func SearchOpensubs(search string, language string) []OpensubsItem {
 
 	searchUrl := fmt.Sprintf("https://www.opensubtitles.org/en/search/sublanguageid-%s/moviename-%s/rss_2_00", language, search)
 	fmt.Println(searchUrl)
@@ -51,7 +51,7 @@ func searchOpensubs(search string, language string) []OpensubsItem {
 	return items
 }
 
-func downloadSubtitle(path string, url string) {
+func DownloadSubtitle(path string, url string) {
 
 	var filename string
 	response, _ := http.Get(url)

@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"encoding/json"
@@ -16,7 +16,7 @@ type Remote struct {
 	Url  string
 }
 
-func readConfig() Config {
+func ReadConfig() Config {
 
 	var config Config
 	configString, _ := os.ReadFile("config.json")
@@ -24,14 +24,14 @@ func readConfig() Config {
 	return config
 }
 
-func writeConfig(config Config) {
+func WriteConfig(config Config) {
 
 	configString, _ := json.MarshalIndent(config, "", "  ")
 	os.WriteFile("config.json", configString, fs.ModePerm)
 }
 
-func getRemote(name string) Remote {
-	config := readConfig()
+func GetRemote(name string) Remote {
+	config := ReadConfig()
 	var remoteConfig Remote
 	for i := range config.Remotes {
 		if config.Remotes[i].Name == name {

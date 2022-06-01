@@ -1,4 +1,4 @@
-package main
+package sites
 
 import (
 	"encoding/xml"
@@ -19,7 +19,7 @@ type Nyaa struct {
 	Items []Item `xml:"channel>item"`
 }
 
-func nyaaTrackers() []string {
+func NyaaTrackers() []string {
 
 	trackers := []string{
 		"http://nyaa.tracker.wf:7777/announce",
@@ -32,7 +32,7 @@ func nyaaTrackers() []string {
 	return trackers
 }
 
-func searchNyaa(search string) []Metadata {
+func SearchNyaa(search string) []Metadata {
 
 	searchUrl := fmt.Sprintf("https://nyaa.si/?page=rss&q=%s", search)
 	fmt.Println(searchUrl)

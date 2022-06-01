@@ -7,19 +7,13 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"pirate/config"
+	"pirate/sites"
 	"sort"
 	"strconv"
 )
 
-type Metadata struct {
-	Name     string
-	Hash     string
-	Seeders  string
-	Size     string
-	Category string
-}
-
-func getMagnet(metadata Metadata, trackers []string) string {
+func getMagnet(metadata sites.Metadata, trackers []string) string {
 
 	trackerString := ""
 	for a := range trackers {
@@ -49,14 +43,14 @@ func addToRemote(remote string, magnet string, category string) {
 	fmt.Println(string(body))
 }
 
-func printMetadata(metadata []Metadata) {
+func printMetadata(metadata []sites.Metadata) {
 
 	for a := range metadata {
 		fmt.Printf("%d - %s - %s - %s\n", a, metadata[a].Name, metadata[a].Seeders, metadata[a].Size)
 	}
 }
 
-func sortMetadata(metadata []Metadata) {
+func sortMetadata(metadata []sites.Metadata) {
 
 	sort.Slice(metadata, func(p, q int) bool {
 		intP, _ := strconv.ParseInt(metadata[p].Seeders, 10, 32)
@@ -101,19 +95,19 @@ func handleTorrent(flags *flag.FlagSet, args []string) {
 	flags.StringVar(&site, "t", "piratebay", "Site")
 	flags.Parse(args[2:])
 
-	var metadata []Metadata
+	var metadata []sites.Metadata
 	var trackers []string
 
 	switch site {
 	case "nyaa":
-		metadata = searchNyaa(search)
-		trackers = nyaaTrackers()
+		metadata = sites.SearchNyaa(search)
+		trackers = sites.NyaaTrackers()
 	case "piratebay":
-		metadata = searchTorrent(search)
-		trackers = pirateBayTrackers()
+		metadata = sites.SearchTorrent(search)
+		trackers = sites.PirateBayTrackers()
 	default:
-		metadata = searchTorrent(search)
-		trackers = pirateBayTrackers()
+		metadata = sites.SearchTorrent(search)
+		trackers = sites.PirateBayTrackers()
 	}
 
 	sortMetadata(metadata)
@@ -133,7 +127,7 @@ func handleTorrent(flags *flag.FlagSet, args []string) {
 	magnet := getMagnet(metadata[index], trackers)
 
 	if len(remote) > 0 {
-		remoteConfig := getRemote(remote)
+		remoteConfig := config.GetRemote(remote)
 		addToRemote(remoteConfig.Url, magnet, category)
 	} else {
 		fmt.Println(magnet)
@@ -151,17 +145,17 @@ func handleConfig(flags *flag.FlagSet, args []string) {
 	flags.StringVar(&subtitleDir, "subtitleDir", "", "Subtitle directory")
 	flags.Parse(args[2:])
 
-	config := readConfig()
+	userConfig := config.ReadConfig()
 
 	if name != "" && url != "" {
-		config.Remotes = append(config.Remotes, Remote{Url: url, Name: name})
+		userConfig.Remotes = append(userConfig.Remotes, config.Remote{Url: url, Name: name})
 	}
 
 	if subtitleDir != "" {
-		config.SubtitleDir = subtitleDir
+		userConfig.SubtitleDir = subtitleDir
 	}
 
-	writeConfig(config)
+	config.WriteConfig(userConfig)
 }
 
 func handleSubtitle(flags *flag.FlagSet, args []string) {
@@ -174,7 +168,7 @@ func handleSubtitle(flags *flag.FlagSet, args []string) {
 	flags.BoolVar(&first, "f", false, "Non-interactive mode, automatically selects first result")
 	flags.Parse(args[2:])
 
-	opensubs := searchOpensubs(search, language)
+	opensubs := sites.SearchOpensubs(search, language)
 
 	for i := range opensubs {
 		fmt.Printf("%d - %s - %s\n", i, opensubs[i].Title, opensubs[i].Link[0].Url)
@@ -188,7 +182,7 @@ func handleSubtitle(flags *flag.FlagSet, args []string) {
 		fmt.Scanf("%d", &index)
 	}
 
-	config := readConfig()
+	userConfig := config.ReadConfig()
 
-	downloadSubtitle(config.SubtitleDir, opensubs[index].Link[0].Url)
+	sites.DownloadSubtitle(userConfig.SubtitleDir, opensubs[index].Link[0].Url)
 }
