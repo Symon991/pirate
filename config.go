@@ -7,7 +7,8 @@ import (
 )
 
 type Config struct {
-	Remotes []Remote
+	Remotes     []Remote
+	SubtitleDir string
 }
 
 type Remote struct {
@@ -35,6 +36,7 @@ func getRemote(name string) Remote {
 	for i := range config.Remotes {
 		if config.Remotes[i].Name == name {
 			remoteConfig = config.Remotes[i]
+			return remoteConfig
 		}
 	}
 	return remoteConfig

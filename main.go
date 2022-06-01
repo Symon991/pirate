@@ -144,13 +144,22 @@ func handleConfig(flags *flag.FlagSet, args []string) {
 
 	var url string
 	var name string
+	var subtitleDir string
 
 	flags.StringVar(&url, "url", "", "Search string")
 	flags.StringVar(&name, "name", "", "qBittorrent Remote")
+	flags.StringVar(&subtitleDir, "subtitleDir", "", "Subtitle directory")
 	flags.Parse(args[2:])
 
 	config := readConfig()
-	config.Remotes = append(config.Remotes, Remote{Url: url, Name: name})
+
+	if name != "" && url != "" {
+		config.Remotes = append(config.Remotes, Remote{Url: url, Name: name})
+	}
+
+	if subtitleDir != "" {
+		config.SubtitleDir = subtitleDir
+	}
 
 	writeConfig(config)
 }
@@ -159,13 +168,27 @@ func handleSubtitle(flags *flag.FlagSet, args []string) {
 
 	var search string
 	var language string
+	var first bool
 	flags.StringVar(&search, "s", "", "Search string")
 	flags.StringVar(&language, "l", "", "Subtitle language (eng, ita)")
+	flags.BoolVar(&first, "f", false, "Non-interactive mode, automatically selects first result")
 	flags.Parse(args[2:])
 
 	opensubs := searchOpensubs(search, language)
 
 	for i := range opensubs {
 		fmt.Printf("%d - %s - %s\n", i, opensubs[i].Title, opensubs[i].Link[0].Url)
+		fmt.Printf("\t%s - %s\n", opensubs[i].Release, opensubs[i].Format)
 	}
+
+	index := 0
+
+	if !first {
+		fmt.Printf("Pick subtitle: ")
+		fmt.Scanf("%d", &index)
+	}
+
+	config := readConfig()
+
+	downloadSubtitle(config.SubtitleDir, opensubs[index].Link[0].Url)
 }
