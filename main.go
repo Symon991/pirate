@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"sort"
 	"strconv"
 )
@@ -66,6 +67,25 @@ func sortMetadata(metadata []Metadata) {
 
 func main() {
 
+	torrentCmd := flag.NewFlagSet("torrent", flag.ExitOnError)
+	configCmd := flag.NewFlagSet("config", flag.ExitOnError)
+	subtitleCmd := flag.NewFlagSet("subtitle", flag.ExitOnError)
+
+	flag.NewFlagSet("config", flag.ExitOnError)
+
+	switch os.Args[1] {
+	case "torrent":
+		handleTorrent(torrentCmd, os.Args)
+	case "config":
+		handleConfig(configCmd, os.Args)
+	case "subtitle":
+		handleSubtitle(subtitleCmd, os.Args)
+	}
+
+}
+
+func handleTorrent(flags *flag.FlagSet, args []string) {
+
 	var search string
 	var first bool
 	var searchOnly bool
@@ -73,13 +93,13 @@ func main() {
 	var category string
 	var site string
 
-	flag.StringVar(&search, "s", "", "Search string")
-	flag.StringVar(&remote, "add", "", "qBittorrent Remote")
-	flag.StringVar(&category, "c", "", "qBittorrent Category")
-	flag.BoolVar(&first, "f", false, "Non-interactive mode, automatically selects first result")
-	flag.BoolVar(&searchOnly, "o", false, "Search Only")
-	flag.StringVar(&site, "t", "piratebay", "Site")
-	flag.Parse()
+	flags.StringVar(&search, "s", "", "Search string")
+	flags.StringVar(&remote, "add", "", "qBittorrent Remote")
+	flags.StringVar(&category, "c", "", "qBittorrent Category")
+	flags.BoolVar(&first, "f", false, "Non-interactive mode, automatically selects first result")
+	flags.BoolVar(&searchOnly, "o", false, "Search Only")
+	flags.StringVar(&site, "t", "piratebay", "Site")
+	flags.Parse(args[2:])
 
 	var metadata []Metadata
 	var trackers []string
@@ -113,8 +133,39 @@ func main() {
 	magnet := getMagnet(metadata[index], trackers)
 
 	if len(remote) > 0 {
-		addToRemote(remote, magnet, category)
+		remoteConfig := getRemote(remote)
+		addToRemote(remoteConfig.Url, magnet, category)
 	} else {
 		fmt.Println(magnet)
+	}
+}
+
+func handleConfig(flags *flag.FlagSet, args []string) {
+
+	var url string
+	var name string
+
+	flags.StringVar(&url, "url", "", "Search string")
+	flags.StringVar(&name, "name", "", "qBittorrent Remote")
+	flags.Parse(args[2:])
+
+	config := readConfig()
+	config.Remotes = append(config.Remotes, Remote{Url: url, Name: name})
+
+	writeConfig(config)
+}
+
+func handleSubtitle(flags *flag.FlagSet, args []string) {
+
+	var search string
+	var language string
+	flags.StringVar(&search, "s", "", "Search string")
+	flags.StringVar(&language, "l", "", "Subtitle language (eng, ita)")
+	flags.Parse(args[2:])
+
+	opensubs := searchOpensubs(search, language)
+
+	for i := range opensubs {
+		fmt.Printf("%d - %s - %s\n", i, opensubs[i].Title, opensubs[i].Link[0].Url)
 	}
 }
