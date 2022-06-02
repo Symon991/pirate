@@ -6,9 +6,9 @@ import (
 	"strconv"
 )
 
-var nyaaUrlTemplate = "https://nyaa.si/?page=rss&q=%s"
-var opensubtitlesUrlTemplate = "https://www.opensubtitles.org/en/search/sublanguageid-%s/moviename-%s/rss_2_00"
-var pirateBayUrlTemplate = "https://pirate-proxy.club/newapi/q.php?q=%s&cat="
+const nyaaUrlTemplate = "https://nyaa.si/?page=rss&q=%s"
+const opensubtitlesUrlTemplate = "https://www.opensubtitles.org/en/search/sublanguageid-%s/moviename-%s/rss_2_00"
+const pirateBayUrlTemplate = "https://pirate-proxy.club/newapi/q.php?q=%s&cat="
 
 type Metadata struct {
 	Name     string
