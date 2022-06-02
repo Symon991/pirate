@@ -20,7 +20,7 @@ func getMagnet(metadata sites.Metadata, trackers []string) string {
 	return fmt.Sprintf("magnet:?xt=urn:btih:%s&dn=%s%s", metadata.Hash, metadata.Name, trackerString)
 }
 
-func addToRemote(remote string, magnet string, category string) {
+func addToRemote(remote string, magnet string, category string) error {
 
 	values := url.Values{"urls": {magnet}}
 
@@ -32,13 +32,13 @@ func addToRemote(remote string, magnet string, category string) {
 	response, err := http.PostForm(fmt.Sprintf("http://%s/api/v2/torrents/add", remote), values)
 
 	if err != nil {
-		fmt.Printf("Errore post: %s\n", err.Error())
-		return
+		return fmt.Errorf("error adding torrent to remote: %s", err.Error())
 	}
 
 	body, _ := ioutil.ReadAll(response.Body)
 
 	fmt.Println(string(body))
+	return nil
 }
 
 func main() {
@@ -110,7 +110,9 @@ func handleTorrent(flags *flag.FlagSet, args []string) {
 
 	if len(remote) > 0 {
 		remoteConfig := config.GetRemote(remote)
-		addToRemote(remoteConfig.Url, magnet, category)
+		if error := addToRemote(remoteConfig.Url, magnet, category); error != nil {
+			fmt.Println(error)
+		}
 	} else {
 		fmt.Println(magnet)
 	}
@@ -122,9 +124,9 @@ func handleConfig(flags *flag.FlagSet, args []string) {
 	var name string
 	var subtitleDir string
 
-	flags.StringVar(&url, "url", "", "Search string")
-	flags.StringVar(&name, "name", "", "qBittorrent Remote")
-	flags.StringVar(&subtitleDir, "subtitleDir", "", "Subtitle directory")
+	flags.StringVar(&url, "url", "", "qBittorrent Remote url")
+	flags.StringVar(&name, "name", "", "qBittorrent Remote name")
+	flags.StringVar(&subtitleDir, "subtitleDir", "", "Subtitle download directory")
 	flags.Parse(args[2:])
 
 	userConfig := config.ReadConfig()
