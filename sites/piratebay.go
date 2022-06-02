@@ -60,7 +60,7 @@ func getSizeString(size float64) string {
 
 func SearchTorrent(search string) []Metadata {
 
-	searchUrl := fmt.Sprintf("https://pirate-proxy.club/newapi/q.php?q=%s&cat=", search)
+	searchUrl := fmt.Sprintf(pirateBayUrlTemplate, search)
 	fmt.Println(searchUrl)
 
 	response, _ := http.Get(searchUrl)

@@ -1,9 +1,35 @@
 package sites
 
+import (
+	"fmt"
+	"sort"
+	"strconv"
+)
+
+var nyaaUrlTemplate = "https://nyaa.si/?page=rss&q=%s"
+var opensubtitlesUrlTemplate = "https://www.opensubtitles.org/en/search/sublanguageid-%s/moviename-%s/rss_2_00"
+var pirateBayUrlTemplate = "https://pirate-proxy.club/newapi/q.php?q=%s&cat="
+
 type Metadata struct {
 	Name     string
 	Hash     string
 	Seeders  string
 	Size     string
 	Category string
+}
+
+func PrintMetadata(metadata []Metadata) {
+
+	for a := range metadata {
+		fmt.Printf("%d - %s - %s - %s\n", a, metadata[a].Name, metadata[a].Seeders, metadata[a].Size)
+	}
+}
+
+func SortMetadata(metadata []Metadata) {
+
+	sort.Slice(metadata, func(p, q int) bool {
+		intP, _ := strconv.ParseInt(metadata[p].Seeders, 10, 32)
+		intQ, _ := strconv.ParseInt(metadata[q].Seeders, 10, 32)
+		return intP > intQ
+	})
 }

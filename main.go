@@ -9,8 +9,6 @@ import (
 	"os"
 	"pirate/config"
 	"pirate/sites"
-	"sort"
-	"strconv"
 )
 
 func getMagnet(metadata sites.Metadata, trackers []string) string {
@@ -41,22 +39,6 @@ func addToRemote(remote string, magnet string, category string) {
 	body, _ := ioutil.ReadAll(response.Body)
 
 	fmt.Println(string(body))
-}
-
-func printMetadata(metadata []sites.Metadata) {
-
-	for a := range metadata {
-		fmt.Printf("%d - %s - %s - %s\n", a, metadata[a].Name, metadata[a].Seeders, metadata[a].Size)
-	}
-}
-
-func sortMetadata(metadata []sites.Metadata) {
-
-	sort.Slice(metadata, func(p, q int) bool {
-		intP, _ := strconv.ParseInt(metadata[p].Seeders, 10, 32)
-		intQ, _ := strconv.ParseInt(metadata[q].Seeders, 10, 32)
-		return intP > intQ
-	})
 }
 
 func main() {
@@ -110,8 +92,8 @@ func handleTorrent(flags *flag.FlagSet, args []string) {
 		trackers = sites.PirateBayTrackers()
 	}
 
-	sortMetadata(metadata)
-	printMetadata(metadata)
+	sites.SortMetadata(metadata)
+	sites.PrintMetadata(metadata)
 
 	if searchOnly {
 		return
@@ -182,7 +164,5 @@ func handleSubtitle(flags *flag.FlagSet, args []string) {
 		fmt.Scanf("%d", &index)
 	}
 
-	userConfig := config.ReadConfig()
-
-	sites.DownloadSubtitle(userConfig.SubtitleDir, opensubs[index].Link[0].Url)
+	sites.DownloadSubtitle(config.GetSubtitleDir(), opensubs[index].Link[0].Url)
 }

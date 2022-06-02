@@ -34,7 +34,7 @@ func NyaaTrackers() []string {
 
 func SearchNyaa(search string) []Metadata {
 
-	searchUrl := fmt.Sprintf("https://nyaa.si/?page=rss&q=%s", search)
+	searchUrl := fmt.Sprintf(nyaaUrlTemplate, search)
 	fmt.Println(searchUrl)
 
 	response, _ := http.Get(searchUrl)

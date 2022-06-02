@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -29,7 +30,7 @@ type Enclosure struct {
 
 func SearchOpensubs(search string, language string) []OpensubsItem {
 
-	searchUrl := fmt.Sprintf("https://www.opensubtitles.org/en/search/sublanguageid-%s/moviename-%s/rss_2_00", language, search)
+	searchUrl := fmt.Sprintf(opensubtitlesUrlTemplate, language, search)
 	fmt.Println(searchUrl)
 
 	response, _ := http.Get(searchUrl)
@@ -40,7 +41,7 @@ func SearchOpensubs(search string, language string) []OpensubsItem {
 
 	items := opensubs.Items[1:10]
 
-	regex := regexp.MustCompile("(?:Released as: ([^;]*);[\\s\\w]*)?Format: ([^;]*);")
+	regex := regexp.MustCompile(`(?:Released as: ([^;]*);[\s\w]*)?Format: ([^;]*);`)
 
 	for i := range items {
 		matches := regex.FindStringSubmatch(items[i].Description)
@@ -60,7 +61,7 @@ func DownloadSubtitle(path string, url string) {
 	fmt.Sscanf(contentDisposition, "attachment; filename=%s", &filename)
 	filename = strings.Replace(filename, "\"", "", -1)
 
-	dir := path + "\\" + filename
+	dir := filepath.Join(path, filename)
 
 	os.MkdirAll(path, os.ModeDir)
 	file, error := os.Create(dir)

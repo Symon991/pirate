@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/fs"
 	"os"
+	"path/filepath"
 )
 
 type Config struct {
@@ -19,7 +20,8 @@ type Remote struct {
 func ReadConfig() Config {
 
 	var config Config
-	configString, _ := os.ReadFile("config.json")
+	basepath, _ := os.Executable()
+	configString, _ := os.ReadFile(filepath.Join(filepath.Dir(basepath), "config.json"))
 	json.Unmarshal(configString, &config)
 	return config
 }
@@ -27,17 +29,31 @@ func ReadConfig() Config {
 func WriteConfig(config Config) {
 
 	configString, _ := json.MarshalIndent(config, "", "  ")
-	os.WriteFile("config.json", configString, fs.ModePerm)
+	basepath, _ := os.Executable()
+	os.WriteFile(filepath.Join(filepath.Dir(basepath), "config.json"), configString, fs.ModePerm)
 }
 
 func GetRemote(name string) Remote {
-	config := ReadConfig()
+
+	userConfig := ReadConfig()
 	var remoteConfig Remote
-	for i := range config.Remotes {
-		if config.Remotes[i].Name == name {
-			remoteConfig = config.Remotes[i]
+	for i := range userConfig.Remotes {
+		if userConfig.Remotes[i].Name == name {
+			remoteConfig = userConfig.Remotes[i]
 			return remoteConfig
 		}
 	}
 	return remoteConfig
+}
+
+func GetSubtitleDir() string {
+
+	userConfig := ReadConfig()
+
+	if !filepath.IsAbs(userConfig.SubtitleDir) {
+		basepath, _ := os.Executable()
+		return filepath.Join(basepath, userConfig.SubtitleDir)
+	}
+
+	return userConfig.SubtitleDir
 }
