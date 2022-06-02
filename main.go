@@ -11,15 +11,6 @@ import (
 	"pirate/sites"
 )
 
-func getMagnet(metadata sites.Metadata, trackers []string) string {
-
-	trackerString := ""
-	for a := range trackers {
-		trackerString += fmt.Sprintf("&tr=%s", trackers[a])
-	}
-	return fmt.Sprintf("magnet:?xt=urn:btih:%s&dn=%s%s", metadata.Hash, metadata.Name, trackerString)
-}
-
 func addToRemote(remote string, magnet string, category string) error {
 
 	values := url.Values{"urls": {magnet}}
@@ -92,6 +83,11 @@ func handleTorrent(flags *flag.FlagSet, args []string) {
 		trackers = sites.PirateBayTrackers()
 	}
 
+	if len(metadata) == 0 {
+		fmt.Printf("No results.\n")
+		return
+	}
+
 	sites.SortMetadata(metadata)
 	sites.PrintMetadata(metadata)
 
@@ -106,7 +102,7 @@ func handleTorrent(flags *flag.FlagSet, args []string) {
 		fmt.Scanf("%d", &index)
 	}
 
-	magnet := getMagnet(metadata[index], trackers)
+	magnet := sites.GetMagnet(metadata[index], trackers)
 
 	if len(remote) > 0 {
 		remoteConfig := config.GetRemote(remote)
@@ -153,6 +149,11 @@ func handleSubtitle(flags *flag.FlagSet, args []string) {
 	flags.Parse(args[2:])
 
 	opensubs := sites.SearchOpensubs(search, language)
+
+	if len(opensubs) == 0 {
+		fmt.Printf("No results.\n")
+		return
+	}
 
 	for i := range opensubs {
 		fmt.Printf("%d - %s - %s\n", i, opensubs[i].Title, opensubs[i].Link[0].Url)
