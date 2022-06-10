@@ -9,9 +9,10 @@ import (
 	"os"
 	"pirate/config"
 	"pirate/sites"
+	"strings"
 )
 
-func addToRemote(remote string, magnet string, category string) error {
+func addToRemote(remote string, magnet string, category string, authCookie string) error {
 
 	values := url.Values{"urls": {magnet}}
 
@@ -20,16 +21,47 @@ func addToRemote(remote string, magnet string, category string) error {
 		values.Add("autoTMM", "true")
 	}
 
-	response, err := http.PostForm(fmt.Sprintf("http://%s/api/v2/torrents/add", remote), values)
+	request, err := http.NewRequest("POST", fmt.Sprintf("http://%s/api/v2/torrents/add", remote), strings.NewReader(values.Encode()))
+
+	if err != nil {
+		return fmt.Errorf("error creating request: %s", err.Error())
+	}
+
+	if authCookie != "" {
+		request.AddCookie(&http.Cookie{Name: "SID", Value: authCookie})
+	}
+
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	response, err := http.DefaultClient.Do(request)
 
 	if err != nil {
 		return fmt.Errorf("error adding torrent to remote: %s", err.Error())
 	}
 
+	defer response.Body.Close()
 	body, _ := ioutil.ReadAll(response.Body)
 
 	fmt.Println(string(body))
 	return nil
+}
+
+func logInRemote(remote string, username string, password string) (string, error) {
+
+	values := url.Values{"username": {username}, "password": {password}}
+
+	response, err := http.PostForm(fmt.Sprintf("http://%s/api/v2/auth/login", remote), values)
+
+	if err != nil {
+		return "", fmt.Errorf("error login remote: %s", err.Error())
+	}
+
+	for _, cookie := range response.Cookies() {
+		if cookie.Name == "SID" {
+			return cookie.Value, nil
+		}
+	}
+
+	return "", fmt.Errorf("error login remote: cookie wasn't set")
 }
 
 func main() {
@@ -105,9 +137,19 @@ func handleTorrent(flags *flag.FlagSet, args []string) {
 	magnet := sites.GetMagnet(metadata[index], trackers)
 
 	if len(remote) > 0 {
+		var authCookie string
 		remoteConfig := config.GetRemote(remote)
-		if error := addToRemote(remoteConfig.Url, magnet, category); error != nil {
-			fmt.Println(error)
+
+		if remoteConfig.UserName != "" {
+			auth, err := logInRemote(remoteConfig.Url, remoteConfig.UserName, remoteConfig.Password)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+			authCookie = auth
+		}
+
+		if err := addToRemote(remoteConfig.Url, magnet, category, authCookie); err != nil {
+			fmt.Println(err.Error())
 		}
 	} else {
 		fmt.Println(magnet)
@@ -119,16 +161,20 @@ func handleConfig(flags *flag.FlagSet, args []string) {
 	var url string
 	var name string
 	var subtitleDir string
+	var username string
+	var password string
 
 	flags.StringVar(&url, "url", "", "qBittorrent Remote url")
 	flags.StringVar(&name, "name", "", "qBittorrent Remote name")
 	flags.StringVar(&subtitleDir, "subtitleDir", "", "Subtitle download directory")
+	flags.StringVar(&username, "username", "", "Username for auth")
+	flags.StringVar(&password, "password", "", "Password for auth")
 	flags.Parse(args[2:])
 
 	userConfig := config.ReadConfig()
 
 	if name != "" && url != "" {
-		userConfig.Remotes = append(userConfig.Remotes, config.Remote{Url: url, Name: name})
+		userConfig.Remotes = append(userConfig.Remotes, config.Remote{Url: url, Name: name, UserName: username, Password: password})
 	}
 
 	if subtitleDir != "" {

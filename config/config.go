@@ -13,8 +13,10 @@ type Config struct {
 }
 
 type Remote struct {
-	Name string
-	Url  string
+	Name     string
+	Url      string
+	UserName string
+	Password string
 }
 
 func ReadConfig() Config {
