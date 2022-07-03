@@ -7,9 +7,10 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"pirate/config"
-	"pirate/sites"
 	"strings"
+
+	"com.github/symon991/pirate/config"
+	"com.github/symon991/pirate/sites"
 )
 
 func addToRemote(remote string, magnet string, category string, authCookie string) error {
@@ -69,8 +70,6 @@ func main() {
 	torrentCmd := flag.NewFlagSet("torrent", flag.ExitOnError)
 	configCmd := flag.NewFlagSet("config", flag.ExitOnError)
 	subtitleCmd := flag.NewFlagSet("subtitle", flag.ExitOnError)
-
-	flag.NewFlagSet("config", flag.ExitOnError)
 
 	switch os.Args[1] {
 	case "torrent":

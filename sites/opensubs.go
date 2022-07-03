@@ -39,7 +39,7 @@ func SearchOpensubs(search string, language string) []OpensubsItem {
 	var opensubs Opensubs
 	xml.Unmarshal(bytes, &opensubs)
 
-	items := opensubs.Items[1:10]
+	items := opensubs.Items
 
 	regex := regexp.MustCompile(`(?:Released as: ([^;]*);[\s\w]*)?Format: ([^;]*);`)
 

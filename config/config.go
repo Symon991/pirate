@@ -54,7 +54,7 @@ func GetSubtitleDir() string {
 
 	if !filepath.IsAbs(userConfig.SubtitleDir) {
 		basepath, _ := os.Executable()
-		return filepath.Join(basepath, userConfig.SubtitleDir)
+		return filepath.Join(filepath.Dir(basepath), userConfig.SubtitleDir)
 	}
 
 	return userConfig.SubtitleDir
