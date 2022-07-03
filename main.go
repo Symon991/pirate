@@ -9,8 +9,8 @@ import (
 	"os"
 	"strings"
 
-	"com.github/symon991/pirate/config"
-	"com.github/symon991/pirate/sites"
+	"github.com/symon991/pirate/config"
+	"github.com/symon991/pirate/sites"
 )
 
 func addToRemote(remote string, magnet string, category string, authCookie string) error {
