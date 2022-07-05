@@ -24,7 +24,7 @@ func GetMagnet(metadata Metadata, trackers []string) string {
 	for a := range trackers {
 		trackerString += fmt.Sprintf("&tr=%s", trackers[a])
 	}
-	return fmt.Sprintf("magnet:/?xt=urn:btih:%s&dn=%s%s", metadata.Hash, metadata.Name, trackerString)
+	return fmt.Sprintf("magnet:?xt=urn:btih:%s&dn=%s%s", metadata.Hash, metadata.Name, trackerString)
 }
 
 func PrintMetadata(metadata []Metadata) {
