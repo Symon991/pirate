@@ -70,16 +70,20 @@ func main() {
 	torrentCmd := flag.NewFlagSet("torrent", flag.ExitOnError)
 	configCmd := flag.NewFlagSet("config", flag.ExitOnError)
 	subtitleCmd := flag.NewFlagSet("subtitle", flag.ExitOnError)
+	var err error
 
 	switch os.Args[1] {
 	case "torrent":
-		handleTorrent(torrentCmd, os.Args)
+		err = handleTorrent(torrentCmd, os.Args)
 	case "config":
 		handleConfig(configCmd, os.Args)
 	case "subtitle":
 		handleSubtitle(subtitleCmd, os.Args)
 	}
 
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func handleTorrent(flags *flag.FlagSet, args []string) error {
@@ -109,6 +113,7 @@ func handleTorrent(flags *flag.FlagSet, args []string) error {
 		metadata = sites.SearchNyaa(search)
 		trackers = sites.NyaaTrackers()
 	case "piratebay":
+		fmt.Println("test")
 		metadata, err = sites.SearchTorrent(search)
 		trackers = sites.PirateBayTrackers()
 	default:

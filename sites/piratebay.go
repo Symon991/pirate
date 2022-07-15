@@ -9,18 +9,18 @@ import (
 )
 
 type PirateBayMetadata struct {
-	Id        int
-	Name      string
-	Info_hash string
-	Leechers  string
-	Seeders   string
-	Num_files string
-	Size      string
-	Username  string
-	Added     string
-	Status    string
-	Category  string
-	Imdb      string
+	Id        string `json:"id"`
+	Name      string `json:"name"`
+	Info_hash string `json:"info_hash"`
+	Leechers  string `json:"leechers"`
+	Seeders   string `json:"seeders"`
+	Num_files string `json:"num_files"`
+	Size      string `json:"size"`
+	Username  string `json:"username"`
+	Added     string `json:"added"`
+	Status    string `json:"status"`
+	Category  string `json:"category"`
+	Imdb      string `json:"imdb"`
 }
 
 func PirateBayTrackers() []string {
@@ -63,6 +63,7 @@ func SearchTorrent(search string) ([]Metadata, error) {
 	searchUrl := fmt.Sprintf(pirateBayUrlTemplate, search)
 	fmt.Println(searchUrl)
 
+	fmt.Println("test")
 	response, err := http.Get(searchUrl)
 	if err != nil {
 		return nil, fmt.Errorf("search torrent: %s", err)
@@ -77,6 +78,9 @@ func SearchTorrent(search string) ([]Metadata, error) {
 	if err != nil {
 		return nil, fmt.Errorf("search torrent: %s", err)
 	}
+
+	fmt.Println("test")
+	fmt.Println(pirateBayMetadata)
 
 	var metadata []Metadata
 
