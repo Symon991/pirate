@@ -82,7 +82,7 @@ func main() {
 
 }
 
-func handleTorrent(flags *flag.FlagSet, args []string) {
+func handleTorrent(flags *flag.FlagSet, args []string) error {
 
 	var search string
 	var first bool
@@ -101,29 +101,35 @@ func handleTorrent(flags *flag.FlagSet, args []string) {
 
 	var metadata []sites.Metadata
 	var trackers []string
+	var err error
+	err = nil
 
 	switch site {
 	case "nyaa":
 		metadata = sites.SearchNyaa(search)
 		trackers = sites.NyaaTrackers()
 	case "piratebay":
-		metadata = sites.SearchTorrent(search)
+		metadata, err = sites.SearchTorrent(search)
 		trackers = sites.PirateBayTrackers()
 	default:
-		metadata = sites.SearchTorrent(search)
+		metadata, err = sites.SearchTorrent(search)
 		trackers = sites.PirateBayTrackers()
+	}
+
+	if err != nil {
+		return fmt.Errorf("handleTorrent: %s", err)
 	}
 
 	if len(metadata) == 0 {
 		fmt.Printf("No results.\n")
-		return
+		return nil
 	}
 
 	sites.SortMetadata(metadata)
 	sites.PrintMetadata(metadata)
 
 	if searchOnly {
-		return
+		return nil
 	}
 
 	index := 0
@@ -153,6 +159,7 @@ func handleTorrent(flags *flag.FlagSet, args []string) {
 	} else {
 		fmt.Println(magnet)
 	}
+	return nil
 }
 
 func handleConfig(flags *flag.FlagSet, args []string) {

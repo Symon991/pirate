@@ -58,26 +58,38 @@ func getSizeString(size float64) string {
 	return fmt.Sprintf("%f Bytes", size)
 }
 
-func SearchTorrent(search string) []Metadata {
+func SearchTorrent(search string) ([]Metadata, error) {
 
 	searchUrl := fmt.Sprintf(pirateBayUrlTemplate, search)
 	fmt.Println(searchUrl)
 
-	response, _ := http.Get(searchUrl)
-	bytes, _ := ioutil.ReadAll(response.Body)
+	response, err := http.Get(searchUrl)
+	if err != nil {
+		return nil, fmt.Errorf("search torrent: %s", err)
+	}
+	bytes, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, fmt.Errorf("search torrent: %s", err)
+	}
 
 	var pirateBayMetadata []PirateBayMetadata
-	json.Unmarshal(bytes, &pirateBayMetadata)
+	err = json.Unmarshal(bytes, &pirateBayMetadata)
+	if err != nil {
+		return nil, fmt.Errorf("search torrent: %s", err)
+	}
 
 	var metadata []Metadata
 
 	for i := range pirateBayMetadata {
 
 		pirateBay := pirateBayMetadata[i]
-		sizeFloat, _ := strconv.ParseFloat(pirateBay.Size, 64)
+		sizeFloat, err := strconv.ParseFloat(pirateBay.Size, 64)
+		if err != nil {
+			return nil, fmt.Errorf("search torrent: %s", err)
+		}
 		size := getSizeString(sizeFloat)
 		metadata = append(metadata, Metadata{Name: pirateBay.Name, Hash: pirateBay.Info_hash, Seeders: pirateBay.Seeders, Size: size})
 	}
 
-	return metadata
+	return metadata, nil
 }
