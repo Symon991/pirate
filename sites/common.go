@@ -8,7 +8,7 @@ import (
 
 const nyaaUrlTemplate = "https://nyaa.si/?page=rss&q=%s"
 const opensubtitlesUrlTemplate = "https://www.opensubtitles.org/en/search/sublanguageid-%s/moviename-%s/rss_2_00"
-const pirateBayUrlTemplate = "https://pirate-proxy.club/newapi/q.php?q=%s&cat="
+const pirateBayUrlTemplate = "https://unlockedpiratebay.com/api.php?url=/q.php?q=%s&cat="
 
 type Metadata struct {
 	Name     string
@@ -18,7 +18,26 @@ type Metadata struct {
 	Category string
 }
 
-func GetMagnet(metadata Metadata, trackers []string) string {
+type Search interface {
+	Search(search string) ([]Metadata, error)
+	GetMagnet(metadata Metadata) string
+	GetName() string
+}
+
+func GetSearch(site string) Search {
+
+	switch site {
+	case "piratebay":
+		return &PirateBaySearch{}
+	case "nyaa":
+		return &NyaaSearch{}
+	case "leetx":
+		return &LeetxSearch{}
+	}
+	return nil
+}
+
+func getMagnet(metadata Metadata, trackers []string) string {
 
 	trackerString := ""
 	for a := range trackers {

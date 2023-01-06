@@ -23,22 +23,55 @@ type PirateBayMetadata struct {
 	Imdb      string `json:"imdb"`
 }
 
-func PirateBayTrackers() []string {
+type PirateBaySearch struct{}
 
-	trackers := []string{
-		"udp://tracker.coppersurfer.tk:6969/announce",
-		"udp://tracker.openbittorrent.com:6969/announce",
-		"udp://9.rarbg.to:2710/announce",
-		"udp://9.rarbg.me:2780/announce",
-		"udp://9.rarbg.to:2730/announce",
-		"udp://tracker.opentrackr.org:1337",
-		"http://p4p.arenabg.com:1337/announce",
-		"udp://tracker.torrent.eu.org:451/announce",
-		"udp://tracker.tiny-vps.com:6969/announce",
-		"udp://open.stealth.si:80/announce",
+func (p PirateBaySearch) Search(search string) ([]Metadata, error) {
+
+	searchUrl := fmt.Sprintf(pirateBayUrlTemplate, search)
+	fmt.Println(searchUrl)
+
+	response, err := http.Get(searchUrl)
+	if err != nil {
+		fmt.Println(err)
+		return nil, fmt.Errorf("api get: %w", err)
 	}
 
-	return trackers
+	bytes, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		fmt.Println(err)
+		return nil, fmt.Errorf("api read response: %w", err)
+	}
+
+	var pirateBayMetadata []PirateBayMetadata
+	err = json.Unmarshal(bytes, &pirateBayMetadata)
+	if err != nil {
+		fmt.Println(err)
+		return nil, fmt.Errorf("unmarshal response: %w", err)
+	}
+
+	var metadata []Metadata
+
+	for i := range pirateBayMetadata {
+
+		pirateBay := pirateBayMetadata[i]
+		sizeFloat, err := strconv.ParseFloat(pirateBay.Size, 64)
+		if err != nil {
+			return nil, fmt.Errorf("size conversion index %d: %w", i, err)
+		}
+		size := getSizeString(sizeFloat)
+		metadata = append(metadata, Metadata{Name: pirateBay.Name, Hash: pirateBay.Info_hash, Seeders: pirateBay.Seeders, Size: size})
+	}
+
+	return metadata, nil
+}
+
+func (p PirateBaySearch) GetName() string {
+	return "Pirate Bay"
+}
+
+func (p PirateBaySearch) GetMagnet(metadata Metadata) string {
+
+	return getMagnet(metadata, pirateBayTrackers())
 }
 
 func getSizeString(size float64) string {
@@ -58,42 +91,18 @@ func getSizeString(size float64) string {
 	return fmt.Sprintf("%f Bytes", size)
 }
 
-func SearchTorrent(search string) ([]Metadata, error) {
+func pirateBayTrackers() []string {
 
-	searchUrl := fmt.Sprintf(pirateBayUrlTemplate, search)
-	fmt.Println(searchUrl)
-
-	fmt.Println("test")
-	response, err := http.Get(searchUrl)
-	if err != nil {
-		return nil, fmt.Errorf("search torrent: %s", err)
+	return []string{
+		"udp://tracker.coppersurfer.tk:6969/announce",
+		"udp://tracker.openbittorrent.com:6969/announce",
+		"udp://9.rarbg.to:2710/announce",
+		"udp://9.rarbg.me:2780/announce",
+		"udp://9.rarbg.to:2730/announce",
+		"udp://tracker.opentrackr.org:1337",
+		"http://p4p.arenabg.com:1337/announce",
+		"udp://tracker.torrent.eu.org:451/announce",
+		"udp://tracker.tiny-vps.com:6969/announce",
+		"udp://open.stealth.si:80/announce",
 	}
-	bytes, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return nil, fmt.Errorf("search torrent: %s", err)
-	}
-
-	var pirateBayMetadata []PirateBayMetadata
-	err = json.Unmarshal(bytes, &pirateBayMetadata)
-	if err != nil {
-		return nil, fmt.Errorf("search torrent: %s", err)
-	}
-
-	fmt.Println("test")
-	fmt.Println(pirateBayMetadata)
-
-	var metadata []Metadata
-
-	for i := range pirateBayMetadata {
-
-		pirateBay := pirateBayMetadata[i]
-		sizeFloat, err := strconv.ParseFloat(pirateBay.Size, 64)
-		if err != nil {
-			return nil, fmt.Errorf("search torrent: %s", err)
-		}
-		size := getSizeString(sizeFloat)
-		metadata = append(metadata, Metadata{Name: pirateBay.Name, Hash: pirateBay.Info_hash, Seeders: pirateBay.Seeders, Size: size})
-	}
-
-	return metadata, nil
 }

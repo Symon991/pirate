@@ -1,0 +1,15 @@
+{
+  "Remotes": [
+    {
+      "Name": "home",
+      "Url": "192.168.1.10:8080",
+      "Username": "admin",
+      "Password": "simone"
+    },
+    {
+      "Name": "local",
+      "Url": "localhost:8080"
+    }
+  ],
+  "SubtitleDir": "subtitles"
+}

@@ -103,24 +103,8 @@ func handleTorrent(flags *flag.FlagSet, args []string) error {
 	flags.StringVar(&site, "t", "piratebay", "Site")
 	flags.Parse(args[2:])
 
-	var metadata []sites.Metadata
-	var trackers []string
-	var err error
-	err = nil
-
-	switch site {
-	case "nyaa":
-		metadata = sites.SearchNyaa(search)
-		trackers = sites.NyaaTrackers()
-	case "piratebay":
-		fmt.Println("test")
-		metadata, err = sites.SearchTorrent(search)
-		trackers = sites.PirateBayTrackers()
-	default:
-		metadata, err = sites.SearchTorrent(search)
-		trackers = sites.PirateBayTrackers()
-	}
-
+	searchSite := sites.GetSearch(site)
+	metadata, err := searchSite.Search(search)
 	if err != nil {
 		return fmt.Errorf("handleTorrent: %s", err)
 	}
@@ -130,7 +114,6 @@ func handleTorrent(flags *flag.FlagSet, args []string) error {
 		return nil
 	}
 
-	sites.SortMetadata(metadata)
 	sites.PrintMetadata(metadata)
 
 	if searchOnly {
@@ -144,7 +127,7 @@ func handleTorrent(flags *flag.FlagSet, args []string) error {
 		fmt.Scanf("%d", &index)
 	}
 
-	magnet := sites.GetMagnet(metadata[index], trackers)
+	magnet := searchSite.GetMagnet(metadata[index])
 
 	if len(remote) > 0 {
 		var authCookie string

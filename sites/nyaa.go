@@ -19,37 +19,54 @@ type Nyaa struct {
 	Items []Item `xml:"channel>item"`
 }
 
-func NyaaTrackers() []string {
+type NyaaSearch struct{}
 
-	trackers := []string{
-		"http://nyaa.tracker.wf:7777/announce",
-		"udp://open.stealth.si:80/announce",
-		"udp://tracker.opentrackr.org:1337/announce",
-		"udp://exodus.desync.com:6969/announce",
-		"udp://tracker.torrent.eu.org:451/announce",
-	}
-
-	return trackers
-}
-
-func SearchNyaa(search string) []Metadata {
+func (n NyaaSearch) Search(search string) ([]Metadata, error) {
 
 	searchUrl := fmt.Sprintf(nyaaUrlTemplate, search)
 	fmt.Println(searchUrl)
 
-	response, _ := http.Get(searchUrl)
-	bytes, _ := ioutil.ReadAll(response.Body)
+	response, err := http.Get(searchUrl)
+	if err != nil {
+		return nil, fmt.Errorf("api get: %w", err)
+	}
+	bytes, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, fmt.Errorf("api get read response: %w", err)
+	}
 
 	var nyaa Nyaa
-	xml.Unmarshal(bytes, &nyaa)
+	err = xml.Unmarshal(bytes, &nyaa)
+	if err != nil {
+		return nil, fmt.Errorf("unmarshal response: %w", err)
+	}
 
 	var metadata []Metadata
-
 	for i := range nyaa.Items {
 
 		item := nyaa.Items[i]
 		metadata = append(metadata, Metadata{Name: item.Title, Hash: item.Hash, Seeders: item.Seeders, Size: item.Size})
 	}
 
-	return metadata
+	return metadata, nil
+}
+
+func (n NyaaSearch) GetMagnet(metadata Metadata) string {
+
+	return getMagnet(metadata, nyaaTrackers())
+}
+
+func (p NyaaSearch) GetName() string {
+	return "Nyaa"
+}
+
+func nyaaTrackers() []string {
+
+	return []string{
+		"http://nyaa.tracker.wf:7777/announce",
+		"udp://open.stealth.si:80/announce",
+		"udp://tracker.opentrackr.org:1337/announce",
+		"udp://exodus.desync.com:6969/announce",
+		"udp://tracker.torrent.eu.org:451/announce",
+	}
 }
