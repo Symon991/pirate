@@ -33,7 +33,7 @@ func (*LeetxSearch) GetMagnet(metadata Metadata) string {
 	c := colly.NewCollector()
 	var result string
 
-	c.OnHTML("#down_magnet", func(e *colly.HTMLElement) {
+	c.OnHTML(".torrentdown1", func(e *colly.HTMLElement) {
 		result = e.Attr("href")
 	})
 
