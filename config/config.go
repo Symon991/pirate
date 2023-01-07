@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -22,8 +23,9 @@ type Remote struct {
 func ReadConfig() Config {
 
 	var config Config
-	basepath, _ := os.Executable()
-	configString, _ := os.ReadFile(filepath.Join(filepath.Dir(basepath), "config.json"))
+	basepath, _ := os.Getwd()
+	fmt.Println(os.Getwd())
+	configString, _ := os.ReadFile(filepath.Join(basepath, "config.json"))
 	json.Unmarshal(configString, &config)
 	return config
 }
