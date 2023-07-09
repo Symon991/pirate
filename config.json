@@ -11,5 +11,11 @@
       "Url": "localhost:8080"
     }
   ],
-  "SubtitleDir": "subtitles"
+  "SubtitleDir": "subtitles",
+  "Sites" : {
+    "NyaaUrlTemplate" : "https://nyaa.si/?page=rss&q=%s",
+    "OpensubtitlesUrlTemplate" : "https://www.opensubtitles.org/en/search/sublanguageid-%s/moviename-%s/rss_2_00",
+    "PirateBayUrlTemplate" : "https://thepiratebay7.com/s/?q=%s&cat=",
+    "LeetxUrlTemplate" : "https://www.1377x.to"
+  }
 }

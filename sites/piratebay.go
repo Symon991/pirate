@@ -3,9 +3,11 @@ package sites
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
+
+	"github.com/symon991/pirate/config"
 )
 
 type PirateBayMetadata struct {
@@ -27,7 +29,7 @@ type PirateBaySearch struct{}
 
 func (p PirateBaySearch) Search(search string) ([]Metadata, error) {
 
-	searchUrl := fmt.Sprintf(pirateBayUrlTemplate, search)
+	searchUrl := fmt.Sprintf(config.ReadConfig().Sites.PirateBayUrlTemplate, search)
 	fmt.Println(searchUrl)
 
 	response, err := http.Get(searchUrl)
@@ -36,7 +38,7 @@ func (p PirateBaySearch) Search(search string) ([]Metadata, error) {
 		return nil, fmt.Errorf("api get: %w", err)
 	}
 
-	bytes, err := ioutil.ReadAll(response.Body)
+	bytes, err := io.ReadAll(response.Body)
 	if err != nil {
 		fmt.Println(err)
 		return nil, fmt.Errorf("api read response: %w", err)

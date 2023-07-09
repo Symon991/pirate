@@ -11,6 +11,7 @@ import (
 type Config struct {
 	Remotes     []Remote
 	SubtitleDir string
+	Sites       Sites
 }
 
 type Remote struct {
@@ -20,9 +21,21 @@ type Remote struct {
 	Password string
 }
 
-func ReadConfig() Config {
+type Sites struct {
+	NyaaUrlTemplate          string
+	OpensubtitlesUrlTemplate string
+	PirateBayUrlTemplate     string
+	LeetxUrlTemplate         string
+}
 
-	var config Config
+var config *Config
+
+func ReadConfig() *Config {
+
+	if config != nil {
+		return config
+	}
+
 	basepath, _ := os.Getwd()
 	fmt.Println(os.Getwd())
 	configString, _ := os.ReadFile(filepath.Join(basepath, "config.json"))
@@ -30,7 +43,7 @@ func ReadConfig() Config {
 	return config
 }
 
-func WriteConfig(config Config) {
+func WriteConfig(config *Config) {
 
 	configString, _ := json.MarshalIndent(config, "", "  ")
 	basepath, _ := os.Executable()

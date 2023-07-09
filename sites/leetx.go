@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"github.com/gocolly/colly"
+	"github.com/symon991/pirate/config"
 )
 
 type LeetxSearch struct{}
@@ -24,7 +25,7 @@ func (*LeetxSearch) Search(search string) ([]Metadata, error) {
 		})
 	})
 
-	c.Visit(fmt.Sprintf("https://www.1337xx.to/search/%s/1/", url.QueryEscape(search)))
+	c.Visit(fmt.Sprintf(config.ReadConfig().Sites.LeetxUrlTemplate+"/search/%s/1/", url.QueryEscape(search)))
 	return metadata, nil
 }
 
@@ -37,7 +38,7 @@ func (*LeetxSearch) GetMagnet(metadata Metadata) string {
 		result = e.Attr("href")
 	})
 
-	c.Visit(fmt.Sprintf("https://www.1337xx.to%s", metadata.Hash))
+	c.Visit(fmt.Sprintf(config.ReadConfig().Sites.LeetxUrlTemplate+"%s", metadata.Hash))
 
 	return result
 }

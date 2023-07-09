@@ -6,10 +6,6 @@ import (
 	"strconv"
 )
 
-const nyaaUrlTemplate = "https://nyaa.si/?page=rss&q=%s"
-const opensubtitlesUrlTemplate = "https://www.opensubtitles.org/en/search/sublanguageid-%s/moviename-%s/rss_2_00"
-const pirateBayUrlTemplate = "https://unlockedpiratebay.com/api.php?url=/q.php?q=%s&cat="
-
 type Metadata struct {
 	Name     string
 	Hash     string

@@ -4,12 +4,13 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/symon991/pirate/config"
 )
 
 type OpensubsItem struct {
@@ -30,11 +31,11 @@ type Enclosure struct {
 
 func SearchOpensubs(search string, language string) []OpensubsItem {
 
-	searchUrl := fmt.Sprintf(opensubtitlesUrlTemplate, language, search)
+	searchUrl := fmt.Sprintf(config.ReadConfig().Sites.OpensubtitlesUrlTemplate, language, search)
 	fmt.Println(searchUrl)
 
 	response, _ := http.Get(searchUrl)
-	bytes, _ := ioutil.ReadAll(response.Body)
+	bytes, _ := io.ReadAll(response.Body)
 
 	var opensubs Opensubs
 	xml.Unmarshal(bytes, &opensubs)

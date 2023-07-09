@@ -3,8 +3,10 @@ package sites
 import (
 	"encoding/xml"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
+
+	"github.com/symon991/pirate/config"
 )
 
 type Item struct {
@@ -23,14 +25,14 @@ type NyaaSearch struct{}
 
 func (n NyaaSearch) Search(search string) ([]Metadata, error) {
 
-	searchUrl := fmt.Sprintf(nyaaUrlTemplate, search)
+	searchUrl := fmt.Sprintf(config.ReadConfig().Sites.NyaaUrlTemplate, search)
 	fmt.Println(searchUrl)
 
 	response, err := http.Get(searchUrl)
 	if err != nil {
 		return nil, fmt.Errorf("api get: %w", err)
 	}
-	bytes, err := ioutil.ReadAll(response.Body)
+	bytes, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, fmt.Errorf("api get read response: %w", err)
 	}
