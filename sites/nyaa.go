@@ -25,6 +25,11 @@ type NyaaSearch struct{}
 
 func (n NyaaSearch) Search(search string) ([]Metadata, error) {
 
+	return n.SearchWithPage(search, 1)
+}
+
+func (n NyaaSearch) SearchWithPage(search string, page uint64) ([]Metadata, error) {
+
 	searchUrl := fmt.Sprintf(config.ReadConfig().Sites.NyaaUrlTemplate, search)
 	fmt.Println(searchUrl)
 

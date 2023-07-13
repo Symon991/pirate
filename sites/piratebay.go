@@ -29,6 +29,11 @@ type PirateBaySearch struct{}
 
 func (p PirateBaySearch) Search(search string) ([]Metadata, error) {
 
+	return p.SearchWithPage(search, 1)
+}
+
+func (p PirateBaySearch) SearchWithPage(search string, page uint64) ([]Metadata, error) {
+
 	searchUrl := fmt.Sprintf(config.ReadConfig().Sites.PirateBayUrlTemplate, search)
 	fmt.Println(searchUrl)
 

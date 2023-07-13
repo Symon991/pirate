@@ -16,6 +16,7 @@ type Metadata struct {
 
 type Search interface {
 	Search(search string) ([]Metadata, error)
+	SearchWithPage(search string, page uint64) ([]Metadata, error)
 	GetMagnet(metadata Metadata) string
 	GetName() string
 }

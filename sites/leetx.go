@@ -10,7 +10,12 @@ import (
 
 type LeetxSearch struct{}
 
-func (*LeetxSearch) Search(search string) ([]Metadata, error) {
+func (s *LeetxSearch) Search(search string) ([]Metadata, error) {
+
+	return s.SearchWithPage(search, 1)
+}
+
+func (*LeetxSearch) SearchWithPage(search string, page uint64) ([]Metadata, error) {
 
 	c := colly.NewCollector()
 
@@ -25,7 +30,7 @@ func (*LeetxSearch) Search(search string) ([]Metadata, error) {
 		})
 	})
 
-	c.Visit(fmt.Sprintf(config.ReadConfig().Sites.LeetxUrlTemplate+"/search/%s/1/", url.QueryEscape(search)))
+	c.Visit(fmt.Sprintf(config.ReadConfig().Sites.LeetxUrlTemplate+"/search/%s/%d/", url.QueryEscape(search), page))
 	return metadata, nil
 }
 

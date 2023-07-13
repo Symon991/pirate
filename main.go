@@ -39,6 +39,7 @@ func handleTorrent(flags *flag.FlagSet, args []string) error {
 	var remote string
 	var category string
 	var site string
+	var page uint64
 
 	flags.StringVar(&search, "s", "", "Search string")
 	flags.StringVar(&remote, "add", "", "qBittorrent Remote")
@@ -46,10 +47,11 @@ func handleTorrent(flags *flag.FlagSet, args []string) error {
 	flags.BoolVar(&first, "f", false, "Non-interactive mode, automatically selects first result")
 	flags.BoolVar(&searchOnly, "o", false, "Search Only")
 	flags.StringVar(&site, "t", "piratebay", "Site")
+	flags.Uint64Var(&page, "p", 1, "Page")
 	flags.Parse(args[2:])
 
 	searchSite := sites.GetSearch(site)
-	metadata, err := searchSite.Search(search)
+	metadata, err := searchSite.SearchWithPage(search, page)
 	if err != nil {
 		return fmt.Errorf("handleTorrent: %s", err)
 	}
