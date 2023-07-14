@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -36,9 +35,8 @@ func ReadConfig() *Config {
 		return config
 	}
 
-	basepath, _ := os.Getwd()
-	fmt.Println(os.Getwd())
-	configString, _ := os.ReadFile(filepath.Join(basepath, "config.json"))
+	basepath, _ := os.Executable()
+	configString, _ := os.ReadFile(filepath.Join(filepath.Dir(basepath), "config.json"))
 	json.Unmarshal(configString, &config)
 	return config
 }

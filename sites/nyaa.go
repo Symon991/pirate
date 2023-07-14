@@ -31,7 +31,7 @@ func (n NyaaSearch) Search(search string) ([]Metadata, error) {
 func (n NyaaSearch) SearchWithPage(search string, page uint64) ([]Metadata, error) {
 
 	searchUrl := fmt.Sprintf(config.ReadConfig().Sites.NyaaUrlTemplate, search)
-	fmt.Println(searchUrl)
+	//fmt.Println(searchUrl)
 
 	response, err := http.Get(searchUrl)
 	if err != nil {

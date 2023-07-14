@@ -37,7 +37,7 @@ func AddToRemote(remote string, magnet string, category string, authCookie strin
 	defer response.Body.Close()
 	body, _ := io.ReadAll(response.Body)
 
-	fmt.Println(string(body))
+	fmt.Printf("API Response: %s", string(body))
 	return nil
 }
 

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/symon991/pirate/client"
 	"github.com/symon991/pirate/config"
@@ -27,72 +28,95 @@ func main() {
 	}
 
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("\n%s\n", err)
 	}
 }
 
 func handleTorrent(flags *flag.FlagSet, args []string) error {
 
 	var search string
-	var first bool
-	var searchOnly bool
 	var remote string
 	var category string
 	var site string
-	var page uint64
+
+	var index int64
+	var page uint64 = 1
+	var metadata []sites.Metadata
+	var err error
 
 	flags.StringVar(&search, "s", "", "Search string")
 	flags.StringVar(&remote, "add", "", "qBittorrent Remote")
 	flags.StringVar(&category, "c", "", "qBittorrent Category")
-	flags.BoolVar(&first, "f", false, "Non-interactive mode, automatically selects first result")
-	flags.BoolVar(&searchOnly, "o", false, "Search Only")
-	flags.StringVar(&site, "t", "piratebay", "Site")
-	flags.Uint64Var(&page, "p", 1, "Page")
+	flags.StringVar(&site, "t", "leetx", "Site")
 	flags.Parse(args[2:])
 
 	searchSite := sites.GetSearch(site)
-	metadata, err := searchSite.SearchWithPage(search, page)
-	if err != nil {
-		return fmt.Errorf("handleTorrent: %s", err)
-	}
 
-	if len(metadata) == 0 {
-		fmt.Printf("No results.\n")
-		return nil
-	}
+	fmt.Printf("\nSearching \"%s\" on %s...", search, site)
 
-	sites.PrintMetadata(metadata)
+main:
+	for {
 
-	if searchOnly {
-		return nil
-	}
+		metadata, err = searchSite.SearchWithPage(search, page)
+		if err != nil {
+			return fmt.Errorf("handleTorrent: %s", err)
+		}
 
-	index := 0
+		fmt.Printf("\n\nShowing result for page %d:\n\n", page)
 
-	if !first {
-		fmt.Printf("Pick torrent: ")
-		fmt.Scanf("%d", &index)
+		if len(metadata) == 0 {
+			fmt.Printf("No results.\n")
+			return nil
+		}
+
+		sites.PrintMetadata(metadata)
+
+		var choice string
+
+		fmt.Printf("\nPick torrent or move to the [n]ext or [p]revious page: ")
+		fmt.Scanf("%s", &choice)
+
+		switch choice {
+		case "n":
+			page = page + 1
+		case "p":
+			page = page - 1
+		default:
+			index, err = strconv.ParseInt(choice, 10, 64)
+			if err == nil {
+				break main
+			}
+		}
+
+		if page < 1 {
+			page = 1
+		}
 	}
 
 	magnet := searchSite.GetMagnet(metadata[index])
 
 	if len(remote) > 0 {
+
+		fmt.Printf("\nAdding torrent to remote %s with category %s...", remote, category)
+
 		var authCookie string
 		remoteConfig := config.GetRemote(remote)
 
 		if remoteConfig.UserName != "" {
 			auth, err := client.LogInRemote(remoteConfig.Url, remoteConfig.UserName, remoteConfig.Password)
 			if err != nil {
-				fmt.Println(err.Error())
+				return fmt.Errorf("error adding torrent to remote: %w", err)
 			}
 			authCookie = auth
 		}
 
 		if err := client.AddToRemote(remoteConfig.Url, magnet, category, authCookie); err != nil {
-			fmt.Println(err.Error())
+			return fmt.Errorf("error adding torrent to remote: %w", err)
 		}
+
 	} else {
-		fmt.Println(magnet)
+
+		fmt.Printf("\nMagnet link for %d - %s: \n\n%s\n\n", index, metadata[index].Name, magnet)
 	}
 	return nil
 }
@@ -129,11 +153,13 @@ func handleSubtitle(flags *flag.FlagSet, args []string) {
 
 	var search string
 	var language string
-	var first bool
+	var index uint64
+
 	flags.StringVar(&search, "s", "", "Search string")
-	flags.StringVar(&language, "l", "", "Subtitle language (eng, ita)")
-	flags.BoolVar(&first, "f", false, "Non-interactive mode, automatically selects first result")
+	flags.StringVar(&language, "l", "ita", "Subtitle language (eng, ita)")
 	flags.Parse(args[2:])
+
+	fmt.Printf("\nSearching \"%s\" on %s...\n\n", search, "OpenSubtitles")
 
 	opensubs := sites.SearchOpensubs(search, language)
 
@@ -143,16 +169,16 @@ func handleSubtitle(flags *flag.FlagSet, args []string) {
 	}
 
 	for i := range opensubs {
-		fmt.Printf("%d - %s - %s\n", i, opensubs[i].Title, opensubs[i].Link[0].Url)
-		fmt.Printf("\t%s - %s\n", opensubs[i].Release, opensubs[i].Format)
+		fmt.Printf("%d - %s - %s\n", i, opensubs[i].Title, opensubs[i].Release)
+		fmt.Printf("\t%s - %s\n", opensubs[i].Link[0].Url, opensubs[i].Format)
 	}
 
-	index := 0
+	fmt.Printf("\nPick subtitle: ")
+	fmt.Scanf("%d", &index)
 
-	if !first {
-		fmt.Printf("Pick subtitle: ")
-		fmt.Scanf("%d", &index)
-	}
+	fmt.Printf("\nDownloading subtitle into %s...", config.GetSubtitleDir())
 
 	sites.DownloadSubtitle(config.GetSubtitleDir(), opensubs[index].Link[0].Url)
+
+	fmt.Printf(" Done\n\n")
 }
