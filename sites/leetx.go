@@ -30,22 +30,35 @@ func (*LeetxSearch) SearchWithPage(search string, page uint64) ([]Metadata, erro
 		})
 	})
 
-	c.Visit(fmt.Sprintf(config.ReadConfig().Sites.LeetxUrlTemplate+"/search/%s/%d/", url.QueryEscape(search), page))
+	url := fmt.Sprintf(config.GetConfig().Sites.LeetxUrlTemplate+"/search/%s/%d/", url.QueryEscape(search), page)
+
+	err := c.Visit(url)
+	if err != nil {
+		return nil, fmt.Errorf("visiting url %s: %w", url, err)
+	}
 	return metadata, nil
 }
 
-func (*LeetxSearch) GetMagnet(metadata Metadata) string {
+func (*LeetxSearch) GetMagnet(metadata Metadata) (string, error) {
 
 	c := colly.NewCollector()
 	var result string
 
-	c.OnHTML(".torrentdown1", func(e *colly.HTMLElement) {
-		result = e.Attr("href")
+	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
+		if e.Text == "Magnet Download" {
+			result = e.Attr("href")
+		}
 	})
 
-	c.Visit(fmt.Sprintf(config.ReadConfig().Sites.LeetxUrlTemplate+"%s", metadata.Hash))
+	url := fmt.Sprintf(config.GetConfig().Sites.LeetxUrlTemplate+"%s", metadata.Hash)
 
-	return result
+	err := c.Visit(url)
+
+	if err != nil {
+		return "", fmt.Errorf("visiting url %s: %w", url, err)
+	}
+
+	return result, nil
 }
 
 func (*LeetxSearch) GetName() string {

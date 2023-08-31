@@ -31,7 +31,7 @@ type Enclosure struct {
 
 func SearchOpensubs(search string, language string) []OpensubsItem {
 
-	searchUrl := fmt.Sprintf(config.ReadConfig().Sites.OpensubtitlesUrlTemplate, language, search)
+	searchUrl := fmt.Sprintf(config.GetConfig().Sites.OpensubtitlesUrlTemplate, language, search)
 	//fmt.Println(searchUrl)
 
 	response, _ := http.Get(searchUrl)

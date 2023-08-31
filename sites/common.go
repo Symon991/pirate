@@ -17,7 +17,7 @@ type Metadata struct {
 type Search interface {
 	Search(search string) ([]Metadata, error)
 	SearchWithPage(search string, page uint64) ([]Metadata, error)
-	GetMagnet(metadata Metadata) string
+	GetMagnet(metadata Metadata) (string, error)
 	GetName() string
 }
 
@@ -34,13 +34,13 @@ func GetSearch(site string) Search {
 	return nil
 }
 
-func getMagnet(metadata Metadata, trackers []string) string {
+func getMagnet(metadata Metadata, trackers []string) (string, error) {
 
 	trackerString := ""
 	for a := range trackers {
 		trackerString += fmt.Sprintf("&tr=%s", trackers[a])
 	}
-	return fmt.Sprintf("magnet:?xt=urn:btih:%s&dn=%s%s", metadata.Hash, metadata.Name, trackerString)
+	return fmt.Sprintf("magnet:?xt=urn:btih:%s&dn=%s%s", metadata.Hash, metadata.Name, trackerString), nil
 }
 
 func PrintMetadata(metadata []Metadata) {

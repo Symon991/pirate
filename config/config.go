@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -29,46 +30,48 @@ type Sites struct {
 
 var config *Config
 
-func ReadConfig() *Config {
+func LoadConfig() (*Config, error) {
 
 	if config != nil {
-		return config
+		return config, nil
 	}
 
 	basepath, _ := os.Executable()
 	configString, _ := os.ReadFile(filepath.Join(filepath.Dir(basepath), "config.json"))
 	json.Unmarshal(configString, &config)
+	return config, nil
+}
+
+func GetConfig() *Config {
+
 	return config
 }
 
-func WriteConfig(config *Config) {
+func WriteConfig() {
 
 	configString, _ := json.MarshalIndent(config, "", "  ")
 	basepath, _ := os.Executable()
 	os.WriteFile(filepath.Join(filepath.Dir(basepath), "config.json"), configString, fs.ModePerm)
 }
 
-func GetRemote(name string) Remote {
+func GetRemote(name string) (*Remote, error) {
 
-	userConfig := ReadConfig()
-	var remoteConfig Remote
-	for i := range userConfig.Remotes {
-		if userConfig.Remotes[i].Name == name {
-			remoteConfig = userConfig.Remotes[i]
-			return remoteConfig
+	var remoteConfig *Remote
+	for i := range config.Remotes {
+		if config.Remotes[i].Name == name {
+			remoteConfig = &config.Remotes[i]
+			return remoteConfig, nil
 		}
 	}
-	return remoteConfig
+	return nil, fmt.Errorf("remote %s not found", name)
 }
 
 func GetSubtitleDir() string {
 
-	userConfig := ReadConfig()
-
-	if !filepath.IsAbs(userConfig.SubtitleDir) {
+	if !filepath.IsAbs(config.SubtitleDir) {
 		basepath, _ := os.Executable()
-		return filepath.Join(filepath.Dir(basepath), userConfig.SubtitleDir)
+		return filepath.Join(filepath.Dir(basepath), config.SubtitleDir)
 	}
 
-	return userConfig.SubtitleDir
+	return config.SubtitleDir
 }

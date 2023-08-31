@@ -13,18 +13,22 @@ import (
 
 func main() {
 
+	_, err := config.LoadConfig()
+	if err != nil {
+		fmt.Printf("error loading configuration: %s", err.Error())
+	}
+
 	torrentCmd := flag.NewFlagSet("torrent", flag.ExitOnError)
 	configCmd := flag.NewFlagSet("config", flag.ExitOnError)
 	subtitleCmd := flag.NewFlagSet("subtitle", flag.ExitOnError)
-	var err error
 
 	switch os.Args[1] {
 	case "torrent":
 		err = handleTorrent(torrentCmd, os.Args)
 	case "config":
-		handleConfig(configCmd, os.Args)
+		err = handleConfig(configCmd, os.Args)
 	case "subtitle":
-		handleSubtitle(subtitleCmd, os.Args)
+		err = handleSubtitle(subtitleCmd, os.Args)
 	}
 
 	if err != nil {
@@ -93,14 +97,17 @@ main:
 		}
 	}
 
-	magnet := searchSite.GetMagnet(metadata[index])
+	magnet, err := searchSite.GetMagnet(metadata[index])
+	if err != nil {
+		return fmt.Errorf("get magnet: %w", err)
+	}
 
 	if len(remote) > 0 {
 
 		fmt.Printf("\nAdding torrent to remote %s with category %s...", remote, category)
 
 		var authCookie string
-		remoteConfig := config.GetRemote(remote)
+		remoteConfig, _ := config.GetRemote(remote)
 
 		if remoteConfig.UserName != "" {
 			auth, err := client.LogInRemote(remoteConfig.Url, remoteConfig.UserName, remoteConfig.Password)
@@ -121,35 +128,53 @@ main:
 	return nil
 }
 
-func handleConfig(flags *flag.FlagSet, args []string) {
+func handleConfig(flags *flag.FlagSet, args []string) error {
 
 	var url string
 	var name string
 	var subtitleDir string
 	var username string
 	var password string
+	var list bool
 
 	flags.StringVar(&url, "url", "", "qBittorrent Remote url")
 	flags.StringVar(&name, "name", "", "qBittorrent Remote name")
 	flags.StringVar(&subtitleDir, "subtitleDir", "", "Subtitle download directory")
 	flags.StringVar(&username, "username", "", "Username for auth")
 	flags.StringVar(&password, "password", "", "Password for auth")
+	flags.BoolVar(&list, "list", false, "List current remotes and subtitle directory")
 	flags.Parse(args[2:])
 
-	userConfig := config.ReadConfig()
+	userConfig := config.GetConfig()
 
-	if name != "" && url != "" {
-		userConfig.Remotes = append(userConfig.Remotes, config.Remote{Url: url, Name: name, UserName: username, Password: password})
+	if list {
+
+		fmt.Printf("\nListing current remotes and subtitle directory:\n")
+
+		for _, remote := range userConfig.Remotes {
+
+			fmt.Printf("\n- Name: %s, Url: %s, Username: %s", remote.Name, remote.Url, remote.UserName)
+		}
+
+	} else {
+
+		if name != "" && url != "" {
+			userConfig.Remotes = append(userConfig.Remotes, config.Remote{Url: url, Name: name, UserName: username, Password: password})
+		}
+
+		if subtitleDir != "" {
+			userConfig.SubtitleDir = subtitleDir
+		}
+
+		config.WriteConfig()
 	}
 
-	if subtitleDir != "" {
-		userConfig.SubtitleDir = subtitleDir
-	}
+	fmt.Printf("\n\n")
 
-	config.WriteConfig(userConfig)
+	return nil
 }
 
-func handleSubtitle(flags *flag.FlagSet, args []string) {
+func handleSubtitle(flags *flag.FlagSet, args []string) error {
 
 	var search string
 	var language string
@@ -165,7 +190,7 @@ func handleSubtitle(flags *flag.FlagSet, args []string) {
 
 	if len(opensubs) == 0 {
 		fmt.Printf("No results.\n")
-		return
+		return nil
 	}
 
 	for i := range opensubs {
@@ -181,4 +206,6 @@ func handleSubtitle(flags *flag.FlagSet, args []string) {
 	sites.DownloadSubtitle(config.GetSubtitleDir(), opensubs[index].Link[0].Url)
 
 	fmt.Printf(" Done\n\n")
+
+	return nil
 }

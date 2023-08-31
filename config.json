@@ -18,6 +18,6 @@
     "NyaaUrlTemplate": "https://nyaa.si/?page=rss\u0026q=%s",
     "OpensubtitlesUrlTemplate": "https://www.opensubtitles.org/en/search/sublanguageid-%s/moviename-%s/rss_2_00",
     "PirateBayUrlTemplate": "https://thepiratebay7.com/s/?q=%s\u0026cat=",
-    "LeetxUrlTemplate": "https://www.1377x.to"
+    "LeetxUrlTemplate": "https://1337x.unblockit.rsvp"
   }
 }

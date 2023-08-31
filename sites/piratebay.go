@@ -34,7 +34,7 @@ func (p PirateBaySearch) Search(search string) ([]Metadata, error) {
 
 func (p PirateBaySearch) SearchWithPage(search string, page uint64) ([]Metadata, error) {
 
-	searchUrl := fmt.Sprintf(config.ReadConfig().Sites.PirateBayUrlTemplate, search)
+	searchUrl := fmt.Sprintf(config.GetConfig().Sites.PirateBayUrlTemplate, search)
 	fmt.Println(searchUrl)
 
 	response, err := http.Get(searchUrl)
@@ -76,7 +76,7 @@ func (p PirateBaySearch) GetName() string {
 	return "Pirate Bay"
 }
 
-func (p PirateBaySearch) GetMagnet(metadata Metadata) string {
+func (p PirateBaySearch) GetMagnet(metadata Metadata) (string, error) {
 
 	return getMagnet(metadata, pirateBayTrackers())
 }

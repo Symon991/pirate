@@ -30,7 +30,7 @@ func (n NyaaSearch) Search(search string) ([]Metadata, error) {
 
 func (n NyaaSearch) SearchWithPage(search string, page uint64) ([]Metadata, error) {
 
-	searchUrl := fmt.Sprintf(config.ReadConfig().Sites.NyaaUrlTemplate, search)
+	searchUrl := fmt.Sprintf(config.GetConfig().Sites.NyaaUrlTemplate, search)
 	//fmt.Println(searchUrl)
 
 	response, err := http.Get(searchUrl)
@@ -58,7 +58,7 @@ func (n NyaaSearch) SearchWithPage(search string, page uint64) ([]Metadata, erro
 	return metadata, nil
 }
 
-func (n NyaaSearch) GetMagnet(metadata Metadata) string {
+func (n NyaaSearch) GetMagnet(metadata Metadata) (string, error) {
 
 	return getMagnet(metadata, nyaaTrackers())
 }
