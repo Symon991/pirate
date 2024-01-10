@@ -61,7 +61,12 @@ func handleTorrent(flags *flag.FlagSet, args []string) error {
 main:
 	for {
 
-		metadata, err = searchSite.SearchWithPage(search, page)
+		if search != "" {
+			metadata, err = searchSite.SearchWithPage(search, page)
+		} else {
+			metadata, err = searchSite.SearchPreset(search)
+		}
+
 		if err != nil {
 			return fmt.Errorf("handleTorrent: %s", err)
 		}

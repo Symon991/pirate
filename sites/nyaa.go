@@ -23,6 +23,11 @@ type Nyaa struct {
 
 type NyaaSearch struct{}
 
+func (s *NyaaSearch) SearchPreset(preset string) ([]Metadata, error) {
+
+	return make([]Metadata, 0), nil
+}
+
 func (n NyaaSearch) Search(search string) ([]Metadata, error) {
 
 	return n.SearchWithPage(search, 1)

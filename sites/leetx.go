@@ -10,6 +10,31 @@ import (
 
 type LeetxSearch struct{}
 
+func (s *LeetxSearch) SearchPreset(preset string) ([]Metadata, error) {
+
+	c := colly.NewCollector()
+
+	var metadata []Metadata
+
+	c.OnHTML("table tbody tr", func(e *colly.HTMLElement) {
+		metadata = append(metadata, Metadata{
+			Name:    e.ChildText(".name a:nth-of-type(2)"),
+			Hash:    e.ChildAttr(".name a:nth-of-type(2)", "href"),
+			Seeders: e.ChildText(".seeds"),
+			Size:    e.ChildText(".size"),
+		})
+	})
+
+	url := config.GetConfig().Sites.LeetxUrlTemplate + "/top-100"
+
+	err := c.Visit(url)
+	if err != nil {
+		return nil, fmt.Errorf("visiting url %s: %w", url, err)
+	}
+
+	return metadata, nil
+}
+
 func (s *LeetxSearch) Search(search string) ([]Metadata, error) {
 
 	return s.SearchWithPage(search, 1)

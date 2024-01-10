@@ -27,6 +27,11 @@ type PirateBayMetadata struct {
 
 type PirateBaySearch struct{}
 
+func (s *PirateBaySearch) SearchPreset(preset string) ([]Metadata, error) {
+
+	return make([]Metadata, 0), nil
+}
+
 func (p PirateBaySearch) Search(search string) ([]Metadata, error) {
 
 	return p.SearchWithPage(search, 1)
