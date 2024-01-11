@@ -3,6 +3,7 @@ package sites
 import (
 	"fmt"
 	"net/url"
+	"strings"
 
 	"github.com/gocolly/colly"
 	"github.com/symon991/pirate/config"
@@ -51,7 +52,7 @@ func (*LeetxSearch) SearchWithPage(search string, page uint64) ([]Metadata, erro
 			Name:    e.ChildText(".name a:nth-of-type(2)"),
 			Hash:    e.ChildAttr(".name a:nth-of-type(2)", "href"),
 			Seeders: e.ChildText(".seeds"),
-			Size:    e.ChildText(".size"),
+			Size:    strings.Split(e.ChildText(".size"), "B")[0] + "B",
 		})
 	})
 
