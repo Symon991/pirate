@@ -68,7 +68,7 @@ func LoadConfig() (*ConfigHandler, error) {
 func (c *ConfigHandler) WriteConfig() {
 
 	configString, _ := json.MarshalIndent(c.Config, "", "  ")
-	os.WriteFile(configHandler.Path, configString, fs.ModePerm)
+	os.WriteFile(c.Path, configString, fs.ModePerm)
 }
 
 func (c *ConfigHandler) GetRemote(name string) (*Remote, error) {
