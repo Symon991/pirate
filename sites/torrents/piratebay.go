@@ -1,4 +1,4 @@
-package sites
+package torrents
 
 import (
 	"encoding/json"
@@ -6,8 +6,6 @@ import (
 	"io"
 	"net/http"
 	"strconv"
-
-	"github.com/symon991/pirate/config"
 )
 
 type PirateBayMetadata struct {
@@ -25,7 +23,9 @@ type PirateBayMetadata struct {
 	Imdb      string `json:"imdb"`
 }
 
-type PirateBaySearch struct{}
+type PirateBaySearch struct {
+	BaseSearch
+}
 
 func (s *PirateBaySearch) SearchPreset(preset string) ([]Metadata, error) {
 
@@ -39,7 +39,7 @@ func (p PirateBaySearch) Search(search string) ([]Metadata, error) {
 
 func (p PirateBaySearch) SearchWithPage(search string, page uint64) ([]Metadata, error) {
 
-	searchUrl := fmt.Sprintf(config.GetConfig().Sites.PirateBayUrlTemplate, search)
+	searchUrl := fmt.Sprintf(p.ConfigHandler.Config.Sites.PirateBayUrlTemplate, search)
 	fmt.Println(searchUrl)
 
 	response, err := http.Get(searchUrl)
@@ -83,7 +83,7 @@ func (p PirateBaySearch) GetName() string {
 
 func (p PirateBaySearch) GetMagnet(metadata Metadata) (string, error) {
 
-	return getMagnet(metadata, pirateBayTrackers())
+	return p.BaseSearch.GetMagnet(metadata, pirateBayTrackers())
 }
 
 func getSizeString(size float64) string {

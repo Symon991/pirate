@@ -1,9 +1,11 @@
-package sites
+package torrents
 
 import (
 	"fmt"
 	"sort"
 	"strconv"
+
+	"github.com/symon991/pirate/config"
 )
 
 type Metadata struct {
@@ -19,23 +21,41 @@ type Search interface {
 	SearchPreset(preset string) ([]Metadata, error)
 	SearchWithPage(search string, page uint64) ([]Metadata, error)
 	GetMagnet(metadata Metadata) (string, error)
+	PrintMetadata(metadata []Metadata)
+	SortMetadata(metadata []Metadata)
 	GetName() string
 }
 
-func GetSearch(site string) Search {
+type BaseSearch struct {
+	ConfigHandler config.ConfigHandler
+}
+
+func GetSearch(site string, configHandler *config.ConfigHandler) Search {
 
 	switch site {
 	case "piratebay":
-		return &PirateBaySearch{}
+		return &PirateBaySearch{
+			BaseSearch: BaseSearch{
+				ConfigHandler: *configHandler,
+			},
+		}
 	case "nyaa":
-		return &NyaaSearch{}
+		return &NyaaSearch{
+			BaseSearch: BaseSearch{
+				ConfigHandler: *configHandler,
+			},
+		}
 	case "leetx":
-		return &LeetxSearch{}
+		return &LeetxSearch{
+			BaseSearch: BaseSearch{
+				ConfigHandler: *configHandler,
+			},
+		}
 	}
 	return nil
 }
 
-func getMagnet(metadata Metadata, trackers []string) (string, error) {
+func (s *BaseSearch) GetMagnet(metadata Metadata, trackers []string) (string, error) {
 
 	trackerString := ""
 	for a := range trackers {
@@ -44,14 +64,14 @@ func getMagnet(metadata Metadata, trackers []string) (string, error) {
 	return fmt.Sprintf("magnet:?xt=urn:btih:%s&dn=%s%s", metadata.Hash, metadata.Name, trackerString), nil
 }
 
-func PrintMetadata(metadata []Metadata) {
+func (s *BaseSearch) PrintMetadata(metadata []Metadata) {
 
 	for a := range metadata {
 		fmt.Printf("%d - %s - %s - %s\n", a, metadata[a].Name, metadata[a].Seeders, metadata[a].Size)
 	}
 }
 
-func SortMetadata(metadata []Metadata) {
+func (s *BaseSearch) SortMetadata(metadata []Metadata) {
 
 	sort.Slice(metadata, func(p, q int) bool {
 		intP, _ := strconv.ParseInt(metadata[p].Seeders, 10, 32)

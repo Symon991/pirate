@@ -1,4 +1,4 @@
-package sites
+package torrents
 
 import (
 	"fmt"
@@ -6,10 +6,11 @@ import (
 	"strings"
 
 	"github.com/gocolly/colly"
-	"github.com/symon991/pirate/config"
 )
 
-type LeetxSearch struct{}
+type LeetxSearch struct {
+	BaseSearch
+}
 
 func (s *LeetxSearch) SearchPreset(preset string) ([]Metadata, error) {
 
@@ -26,7 +27,7 @@ func (s *LeetxSearch) SearchPreset(preset string) ([]Metadata, error) {
 		})
 	})
 
-	url := config.GetConfig().Sites.LeetxUrlTemplate + "/top-100"
+	url := s.ConfigHandler.Config.Sites.LeetxUrlTemplate + "/top-100"
 
 	err := c.Visit(url)
 	if err != nil {
@@ -41,7 +42,7 @@ func (s *LeetxSearch) Search(search string) ([]Metadata, error) {
 	return s.SearchWithPage(search, 1)
 }
 
-func (*LeetxSearch) SearchWithPage(search string, page uint64) ([]Metadata, error) {
+func (s *LeetxSearch) SearchWithPage(search string, page uint64) ([]Metadata, error) {
 
 	c := colly.NewCollector()
 
@@ -56,7 +57,7 @@ func (*LeetxSearch) SearchWithPage(search string, page uint64) ([]Metadata, erro
 		})
 	})
 
-	url := fmt.Sprintf(config.GetConfig().Sites.LeetxUrlTemplate+"/search/%s/%d/", url.QueryEscape(search), page)
+	url := fmt.Sprintf(s.ConfigHandler.Config.Sites.LeetxUrlTemplate+"/search/%s/%d/", url.QueryEscape(search), page)
 
 	err := c.Visit(url)
 	if err != nil {
@@ -65,7 +66,7 @@ func (*LeetxSearch) SearchWithPage(search string, page uint64) ([]Metadata, erro
 	return metadata, nil
 }
 
-func (*LeetxSearch) GetMagnet(metadata Metadata) (string, error) {
+func (s *LeetxSearch) GetMagnet(metadata Metadata) (string, error) {
 
 	c := colly.NewCollector()
 	var result string
@@ -76,7 +77,7 @@ func (*LeetxSearch) GetMagnet(metadata Metadata) (string, error) {
 		}
 	})
 
-	url := fmt.Sprintf(config.GetConfig().Sites.LeetxUrlTemplate+"%s", metadata.Hash)
+	url := fmt.Sprintf(s.ConfigHandler.Config.Sites.LeetxUrlTemplate+"%s", metadata.Hash)
 
 	err := c.Visit(url)
 

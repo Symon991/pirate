@@ -1,12 +1,10 @@
-package sites
+package torrents
 
 import (
 	"encoding/xml"
 	"fmt"
 	"io"
 	"net/http"
-
-	"github.com/symon991/pirate/config"
 )
 
 type Item struct {
@@ -21,7 +19,9 @@ type Nyaa struct {
 	Items []Item `xml:"channel>item"`
 }
 
-type NyaaSearch struct{}
+type NyaaSearch struct {
+	BaseSearch
+}
 
 func (s *NyaaSearch) SearchPreset(preset string) ([]Metadata, error) {
 
@@ -35,8 +35,7 @@ func (n NyaaSearch) Search(search string) ([]Metadata, error) {
 
 func (n NyaaSearch) SearchWithPage(search string, page uint64) ([]Metadata, error) {
 
-	searchUrl := fmt.Sprintf(config.GetConfig().Sites.NyaaUrlTemplate, search)
-	//fmt.Println(searchUrl)
+	searchUrl := fmt.Sprintf(n.ConfigHandler.Config.Sites.NyaaUrlTemplate, search)
 
 	response, err := http.Get(searchUrl)
 	if err != nil {
@@ -65,7 +64,7 @@ func (n NyaaSearch) SearchWithPage(search string, page uint64) ([]Metadata, erro
 
 func (n NyaaSearch) GetMagnet(metadata Metadata) (string, error) {
 
-	return getMagnet(metadata, nyaaTrackers())
+	return n.BaseSearch.GetMagnet(metadata, nyaaTrackers())
 }
 
 func (p NyaaSearch) GetName() string {

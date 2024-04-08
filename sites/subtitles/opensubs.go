@@ -1,4 +1,4 @@
-package sites
+package subtitles
 
 import (
 	"encoding/xml"
@@ -29,10 +29,9 @@ type Enclosure struct {
 	Url string `xml:"url,attr"`
 }
 
-func SearchOpensubs(search string, language string) []OpensubsItem {
+func SearchOpensubs(search string, language string, configHandler *config.ConfigHandler) []OpensubsItem {
 
-	searchUrl := fmt.Sprintf(config.GetConfig().Sites.OpensubtitlesUrlTemplate, language, search)
-	//fmt.Println(searchUrl)
+	searchUrl := fmt.Sprintf(configHandler.Config.Sites.OpensubtitlesUrlTemplate, language, search)
 
 	response, _ := http.Get(searchUrl)
 	bytes, _ := io.ReadAll(response.Body)

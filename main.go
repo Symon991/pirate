@@ -8,12 +8,17 @@ import (
 
 	"github.com/symon991/pirate/client"
 	"github.com/symon991/pirate/config"
-	"github.com/symon991/pirate/sites"
+	"github.com/symon991/pirate/sites/subtitles"
+	"github.com/symon991/pirate/sites/torrents"
 )
+
+var userConfig *config.ConfigHandler
 
 func main() {
 
-	_, err := config.LoadConfig()
+	var err error
+
+	userConfig, err = config.LoadConfig()
 	if err != nil {
 		fmt.Printf("error loading configuration: %s", err.Error())
 	}
@@ -45,7 +50,7 @@ func handleTorrent(flags *flag.FlagSet, args []string) error {
 
 	var index int64
 	var page uint64 = 1
-	var metadata []sites.Metadata
+	var metadata []torrents.Metadata
 	var err error
 
 	flags.StringVar(&search, "s", "", "Search string")
@@ -54,7 +59,7 @@ func handleTorrent(flags *flag.FlagSet, args []string) error {
 	flags.StringVar(&site, "t", "leetx", "Site")
 	flags.Parse(args[2:])
 
-	searchSite := sites.GetSearch(site)
+	searchSite := torrents.GetSearch(site, userConfig)
 
 	fmt.Printf("\nSearching \"%s\" on %s...", search, site)
 
@@ -78,7 +83,7 @@ main:
 			return nil
 		}
 
-		sites.PrintMetadata(metadata)
+		searchSite.PrintMetadata(metadata)
 
 		var choice string
 
@@ -112,7 +117,7 @@ main:
 		fmt.Printf("\nAdding torrent to remote %s with category %s...", remote, category)
 
 		var authCookie string
-		remoteConfig, _ := config.GetRemote(remote)
+		remoteConfig, _ := userConfig.GetRemote(remote)
 
 		if remoteConfig.UserName != "" {
 			auth, err := client.LogInRemote(remoteConfig.Url, remoteConfig.UserName, remoteConfig.Password)
@@ -150,13 +155,11 @@ func handleConfig(flags *flag.FlagSet, args []string) error {
 	flags.BoolVar(&list, "list", false, "List current remotes and subtitle directory")
 	flags.Parse(args[2:])
 
-	userConfig := config.GetConfig()
-
 	if list {
 
 		fmt.Printf("\nListing current remotes and subtitle directory:\n")
 
-		for _, remote := range userConfig.Remotes {
+		for _, remote := range userConfig.Config.Remotes {
 
 			fmt.Printf("\n- Name: %s, Url: %s, Username: %s", remote.Name, remote.Url, remote.UserName)
 		}
@@ -164,14 +167,14 @@ func handleConfig(flags *flag.FlagSet, args []string) error {
 	} else {
 
 		if name != "" && url != "" {
-			userConfig.Remotes = append(userConfig.Remotes, config.Remote{Url: url, Name: name, UserName: username, Password: password})
+			userConfig.AddRemote(config.Remote{Url: url, Name: name, UserName: username, Password: password})
 		}
 
 		if subtitleDir != "" {
-			userConfig.SubtitleDir = subtitleDir
+			userConfig.Config.SubtitleDir = subtitleDir
 		}
 
-		config.WriteConfig()
+		userConfig.WriteConfig()
 	}
 
 	fmt.Printf("\n\n")
@@ -191,7 +194,7 @@ func handleSubtitle(flags *flag.FlagSet, args []string) error {
 
 	fmt.Printf("\nSearching \"%s\" on %s...\n\n", search, "OpenSubtitles")
 
-	opensubs := sites.SearchOpensubs(search, language)
+	opensubs := subtitles.SearchOpensubs(search, language, userConfig)
 
 	if len(opensubs) == 0 {
 		fmt.Printf("No results.\n")
@@ -206,9 +209,9 @@ func handleSubtitle(flags *flag.FlagSet, args []string) error {
 	fmt.Printf("\nPick subtitle: ")
 	fmt.Scanf("%d", &index)
 
-	fmt.Printf("\nDownloading subtitle into %s...", config.GetSubtitleDir())
+	fmt.Printf("\nDownloading subtitle into %s...", userConfig.GetSubtitleDir())
 
-	sites.DownloadSubtitle(config.GetSubtitleDir(), opensubs[index].Link[0].Url)
+	subtitles.DownloadSubtitle(userConfig.GetSubtitleDir(), opensubs[index].Link[0].Url)
 
 	fmt.Printf(" Done\n\n")
 

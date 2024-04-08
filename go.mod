@@ -1,6 +1,6 @@
 module github.com/symon991/pirate
 
-go 1.17
+go 1.22
 
 require github.com/gocolly/colly v1.2.0
 
